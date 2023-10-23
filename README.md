@@ -48,6 +48,21 @@ func main() {
 }
 ```
 
+Output:
+
+```
+$ go run small.go
+
+ttlMap length: 2
+[ myString] a b c
+[int_array] [1 2 3]
+
+Sleeping 5 seconds, items should be 'nil' after this time
+[ myString] <nil>
+[int_array] <nil>
+ttlMap length: 0
+```
+
 ## Performance
 * Searching for expired items runs in O(n) time, where n = number of items in the `ttlMap`.
 * * This inefficiency can be somewhat mitigated by increasing the value of the `pruneInterval` time.
