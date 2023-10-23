@@ -95,4 +95,14 @@ func main() {
 	}
 	fmt.Println("ttlMap length:", t.Len())
 	fmt.Println()
+
+	fmt.Println()
+	fmt.Printf("Manually deleting '%v' key; should be successful\n", dontExpireKey)
+	success := t.Delete(ttlMap.CustomKeyType(dontExpireKey))
+	fmt.Printf("    successful? %v\n", success)
+	fmt.Printf("Manually deleting '%v' key again; should NOT be successful this time\n", dontExpireKey)
+	success = t.Delete(ttlMap.CustomKeyType(dontExpireKey))
+	fmt.Printf("    successful? %v\n", success)
+	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println()
 }

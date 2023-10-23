@@ -100,3 +100,27 @@ func TestWithNoRefresh(t *testing.T) {
 		t.Errorf("t.Len should be 0, but actually equals %v\n", tm.Len())
 	}
 }
+
+func TestDelete(t *testing.T) {
+	maxTTL := 2                    // time in seconds
+	startSize := 3                 // initial number of items in map
+	pruneInterval := 4             // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
+	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+
+	// populate the ttlMap
+	tm.Put("myString", "a b c")
+	tm.Put("int_array", []int{1, 2, 3})
+
+	tm.Delete("int_array")
+	t.Logf("tm.len: %v\n", tm.Len())
+	if tm.Len() != 1 {
+		t.Fatalf("t.Len should equal 1, but actually equals %v\n", tm.Len())
+	}
+
+	tm.Delete("myString")
+	t.Logf("tm.len: %v\n", tm.Len())
+	if tm.Len() != 0 {
+		t.Fatalf("t.Len should equal 0, but actually equals %v\n", tm.Len())
+	}
+}

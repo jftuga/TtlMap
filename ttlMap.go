@@ -30,7 +30,7 @@ import (
 	"time"
 )
 
-const version string = "1.0.0"
+const version string = "1.1.0"
 
 type CustomKeyType string
 
@@ -94,6 +94,18 @@ func (m *ttlMap) Get(k CustomKeyType) (v interface{}) {
 	}
 	m.l.Unlock()
 	return
+}
+
+func (m *ttlMap) Delete(k CustomKeyType) bool {
+	m.l.Lock()
+	_, ok := m.m[k]
+	if !ok {
+		m.l.Unlock()
+		return false
+	}
+	delete(m.m, k)
+	m.l.Unlock()
+	return true
 }
 
 func (m *ttlMap) All() map[CustomKeyType]*item {
