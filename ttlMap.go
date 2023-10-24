@@ -31,7 +31,7 @@ import (
 	"time"
 )
 
-const version string = "1.1.0"
+const version string = "1.2.0"
 
 type CustomKeyType string
 
