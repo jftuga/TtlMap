@@ -105,4 +105,13 @@ func main() {
 	fmt.Printf("    successful? %v\n", success)
 	fmt.Println("ttlMap length:", t.Len())
 	fmt.Println()
+
+	fmt.Println("Adding 2 items and then running Clear()")
+	t.Put("string", "a b c")
+	t.Put("int", 3)
+	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("running Clear()")
+	t.Clear()
+	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println()
 }

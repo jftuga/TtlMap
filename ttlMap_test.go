@@ -124,3 +124,25 @@ func TestDelete(t *testing.T) {
 		t.Fatalf("t.Len should equal 0, but actually equals %v\n", tm.Len())
 	}
 }
+
+func TestClear(t *testing.T) {
+	maxTTL := 2                    // time in seconds
+	startSize := 3                 // initial number of items in map
+	pruneInterval := 4             // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
+	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+
+	// populate the ttlMap
+	tm.Put("myString", "a b c")
+	tm.Put("int_array", []int{1, 2, 3})
+	t.Logf("tm.len: %v\n", tm.Len())
+	if tm.Len() != 2 {
+		t.Fatalf("t.Len should equal 2, but actually equals %v\n", tm.Len())
+	}
+
+	tm.Clear()
+	t.Logf("tm.len: %v\n", tm.Len())
+	if tm.Len() != 0 {
+		t.Fatalf("t.Len should equal 0, but actually equals %v\n", tm.Len())
+	}
+}

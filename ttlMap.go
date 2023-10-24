@@ -20,6 +20,7 @@ Changes from the referenced implementation
 4) use item.Value instead of item.value so that it can be externally referenced
 5) added user configurable prune interval - search for expired items every 'pruneInterval' seconds
 6) toggle for refreshLastAccessOnGet - update item's lastAccessTime on a .Get() when set to true
+7) add Delete() and Clear() functions
 
 */
 
@@ -106,6 +107,12 @@ func (m *ttlMap) Delete(k CustomKeyType) bool {
 	delete(m.m, k)
 	m.l.Unlock()
 	return true
+}
+
+func (m *ttlMap) Clear() {
+	m.l.Lock()
+	clear(m.m)
+	m.l.Unlock()
 }
 
 func (m *ttlMap) All() map[CustomKeyType]*item {
