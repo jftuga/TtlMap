@@ -1,4 +1,4 @@
-package ttlMap
+package TtlMap
 
 import (
 	"testing"
@@ -12,7 +12,7 @@ func TestAllItemsExpired(t *testing.T) {
 	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
 	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	tm.Put("myString", "a b c")
 	tm.Put("int_array", []int{1, 2, 3})
 
@@ -31,7 +31,7 @@ func TestNoItemsExpired(t *testing.T) {
 	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
 	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	tm.Put("myString", "a b c")
 	tm.Put("int_array", []int{1, 2, 3})
 
@@ -50,7 +50,7 @@ func TestKeepFloat(t *testing.T) {
 	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
 	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	tm.Put("myString", "a b c")
 	tm.Put("int", 1234)
 	tm.Put("int_array", []int{1, 2, 3})
@@ -82,7 +82,7 @@ func TestWithNoRefresh(t *testing.T) {
 	refreshLastAccessOnGet := false // do NOT update item's lastAccessTime on a .Get()
 	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	tm.Put("myString", "a b c")
 	tm.Put("int_array", []int{1, 2, 3})
 
@@ -108,7 +108,7 @@ func TestDelete(t *testing.T) {
 	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
 	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	tm.Put("myString", "a b c")
 	tm.Put("int_array", []int{1, 2, 3})
 
@@ -132,7 +132,7 @@ func TestClear(t *testing.T) {
 	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
 	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	tm.Put("myString", "a b c")
 	tm.Put("int_array", []int{1, 2, 3})
 	t.Logf("tm.len: %v\n", tm.Len())

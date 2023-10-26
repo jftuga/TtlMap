@@ -1,9 +1,9 @@
 /*
-ttlMap.go
+TtlMap.go
 -John Taylor
 2023-10-21
 
-ttlMap is a "time-to-live" map such that after a given amount of time, items
+TtlMap is a "time-to-live" map such that after a given amount of time, items
 in the map are deleted.
 
 When a Put() occurs, the lastAccess time is set to time.Now().Unix()
@@ -24,7 +24,7 @@ Changes from the referenced implementation
 
 */
 
-package ttlMap
+package TtlMap
 
 import (
 	"sync"
@@ -40,17 +40,17 @@ type item struct {
 	lastAccess int64
 }
 
-type ttlMap struct {
+type TtlMap struct {
 	m       map[CustomKeyType]*item
 	l       sync.Mutex
 	refresh bool
 }
 
-func New(maxTTL int, ln int, pruneInterval int, refreshLastAccessOnGet bool) (m *ttlMap) {
+func New(maxTTL int, ln int, pruneInterval int, refreshLastAccessOnGet bool) (m *TtlMap) {
 	// if pruneInterval > maxTTL {
-	// 	print("WARNING: ttlMap: pruneInterval > maxTTL\n")
+	// 	print("WARNING: TtlMap: pruneInterval > maxTTL\n")
 	// }
-	m = &ttlMap{m: make(map[CustomKeyType]*item, ln)}
+	m = &TtlMap{m: make(map[CustomKeyType]*item, ln)}
 	m.refresh = refreshLastAccessOnGet
 	go func() {
 		for now := range time.Tick(time.Second * time.Duration(pruneInterval)) {
@@ -70,11 +70,11 @@ func New(maxTTL int, ln int, pruneInterval int, refreshLastAccessOnGet bool) (m 
 	return
 }
 
-func (m *ttlMap) Len() int {
+func (m *TtlMap) Len() int {
 	return len(m.m)
 }
 
-func (m *ttlMap) Put(k CustomKeyType, v interface{}) {
+func (m *TtlMap) Put(k CustomKeyType, v interface{}) {
 	m.l.Lock()
 	it, ok := m.m[k]
 	if !ok {
@@ -85,7 +85,7 @@ func (m *ttlMap) Put(k CustomKeyType, v interface{}) {
 	m.l.Unlock()
 }
 
-func (m *ttlMap) Get(k CustomKeyType) (v interface{}) {
+func (m *TtlMap) Get(k CustomKeyType) (v interface{}) {
 	m.l.Lock()
 	if it, ok := m.m[k]; ok {
 		v = it.Value
@@ -97,7 +97,7 @@ func (m *ttlMap) Get(k CustomKeyType) (v interface{}) {
 	return
 }
 
-func (m *ttlMap) Delete(k CustomKeyType) bool {
+func (m *TtlMap) Delete(k CustomKeyType) bool {
 	m.l.Lock()
 	_, ok := m.m[k]
 	if !ok {
@@ -109,12 +109,12 @@ func (m *ttlMap) Delete(k CustomKeyType) bool {
 	return true
 }
 
-func (m *ttlMap) Clear() {
+func (m *TtlMap) Clear() {
 	m.l.Lock()
 	clear(m.m)
 	m.l.Unlock()
 }
 
-func (m *ttlMap) All() map[CustomKeyType]*item {
+func (m *TtlMap) All() map[CustomKeyType]*item {
 	return m.m
 }

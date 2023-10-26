@@ -1,7 +1,7 @@
-# ttlMap
+# TtlMap
 
-`ttlMap` is golang package that implements a *time-to-live* map such that after a given amount of time, items in the map are deleted.
-* The default map key uses a type of `string`, but this can be modified be changing `CustomKeyType` in [ttlMap.go](ttlMap.go).
+`TtlMap` is golang package that implements a *time-to-live* map such that after a given amount of time, items in the map are deleted.
+* The default map key uses a type of `string`, but this can be modified be changing `CustomKeyType` in [TtlMap.go](TtlMap.go).
 * Any data type can be used as a map value. Internally, `interface{}` is used for this.
 
 ## Example
@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jftuga/ttlMap"
+	"github.com/jftuga/TtlMap"
 )
 
 func main() {
@@ -25,14 +25,14 @@ func main() {
 	startSize := 3                 // initial number of items in map
 	pruneInterval := 1             // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true // update item's 'lastAccessTime' on a .Get()
-	t := ttlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	t.Put("myString", "a b c")
 	t.Put("int_array", []int{1, 2, 3})
-	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len())
 
-	// display all items in ttlMap
+	// display all items in TtlMap
 	all := t.All()
 	for k, v := range all {
 		fmt.Printf("[%9s] %v\n", k, v.Value)
@@ -44,7 +44,7 @@ func main() {
 	time.Sleep(time.Second * time.Duration(sleepTime))
 	fmt.Printf("[%9s] %v\n", "myString", t.Get("myString"))
 	fmt.Printf("[%9s] %v\n", "int_array", t.Get("int_array"))
-	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len())
 }
 ```
 
@@ -53,18 +53,18 @@ Output:
 ```
 $ go run small.go
 
-ttlMap length: 2
+TtlMap length: 2
 [ myString] a b c
 [int_array] [1 2 3]
 
 Sleeping 5 seconds, items should be 'nil' after this time
 [ myString] <nil>
 [int_array] <nil>
-ttlMap length: 0
+TtlMap length: 0
 ```
 
 ## API functions
-* `New`: initialize a `ttlMap`
+* `New`: initialize a `TtlMap`
 * `Len`: return the number of items in the map
 * `Put`: add a key/value
 * `Get`: get the current value of the given key; return `nil` if the key is not found in the map
@@ -73,7 +73,7 @@ ttlMap length: 0
 * `Clear`: remove all items from the map
 
 ## Performance
-* Searching for expired items runs in O(n) time, where n = number of items in the `ttlMap`.
+* Searching for expired items runs in O(n) time, where n = number of items in the `TtlMap`.
 * * This inefficiency can be somewhat mitigated by increasing the value of the `pruneInterval` time.
 * In most cases you want `pruneInterval > maxTTL`; otherwise expired items will stay in the map longer than expected.
 

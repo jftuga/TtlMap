@@ -3,7 +3,7 @@ example.go
 -John Taylor
 2023-10-21
 
-This is an example on how to use the ttlMap package.  Notice the variety of data types used.
+This is an example on how to use the TtlMap package.  Notice the variety of data types used.
 */
 
 package main
@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jftuga/ttlMap"
+	"github.com/jftuga/TtlMap"
 )
 
 type User struct {
@@ -25,9 +25,9 @@ func main() {
 	startSize := 3                 // initial number of items in map
 	pruneInterval := 1             // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
-	t := ttlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 
-	// populate the ttlMap
+	// populate the TtlMap
 	t.Put("string", "a b c")
 	t.Put("int", 3)
 	t.Put("float", 4.4)
@@ -44,13 +44,13 @@ func main() {
 	t.Put("all_users", allUsers)
 
 	fmt.Println()
-	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len())
 
 	// extract entry from struct array
 	a := t.Get("all_users").([]User)
 	fmt.Printf("second user: %v, %v\n", a[1].Name, a[1].Level)
 
-	// display all items in ttlMap
+	// display all items in TtlMap
 	fmt.Println()
 	fmt.Println("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
 	all := t.All()
@@ -65,11 +65,11 @@ func main() {
 	dontExpireKey := "float"
 	go func() {
 		for range time.Tick(time.Second) {
-			t.Get(ttlMap.CustomKeyType(dontExpireKey))
+			t.Get(TtlMap.CustomKeyType(dontExpireKey))
 		}
 	}()
 
-	// ttlMap has an expiration time, wait until this amount of time passes
+	// TtlMap has an expiration time, wait until this amount of time passes
 	sleepTime := maxTTL + pruneInterval
 	fmt.Println()
 	fmt.Printf("Sleeping %v seconds, items should be removed after this time, except for the '%v' key\n", sleepTime, dontExpireKey)
@@ -93,25 +93,25 @@ func main() {
 	if t.Get("int") == nil {
 		fmt.Println("[int] is nil")
 	}
-	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len())
 	fmt.Println()
 
 	fmt.Println()
 	fmt.Printf("Manually deleting '%v' key; should be successful\n", dontExpireKey)
-	success := t.Delete(ttlMap.CustomKeyType(dontExpireKey))
+	success := t.Delete(TtlMap.CustomKeyType(dontExpireKey))
 	fmt.Printf("    successful? %v\n", success)
 	fmt.Printf("Manually deleting '%v' key again; should NOT be successful this time\n", dontExpireKey)
-	success = t.Delete(ttlMap.CustomKeyType(dontExpireKey))
+	success = t.Delete(TtlMap.CustomKeyType(dontExpireKey))
 	fmt.Printf("    successful? %v\n", success)
-	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len())
 	fmt.Println()
 
 	fmt.Println("Adding 2 items and then running Clear()")
 	t.Put("string", "a b c")
 	t.Put("int", 3)
-	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len())
 	fmt.Println("running Clear()")
 	t.Clear()
-	fmt.Println("ttlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len())
 	fmt.Println()
 }
