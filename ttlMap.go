@@ -29,6 +29,8 @@ package TtlMap
 import (
 	"sync"
 	"time"
+
+	"github.com/LastPossum/kamino"
 )
 
 const version string = "1.2.0"
@@ -116,5 +118,10 @@ func (m *TtlMap) Clear() {
 }
 
 func (m *TtlMap) All() map[CustomKeyType]*item {
-	return m.m
+	copy, err := kamino.Clone(m.m)
+	if err != nil {
+		print(err)
+		return nil
+	}
+	return copy
 }

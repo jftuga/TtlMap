@@ -1,6 +1,8 @@
 package TtlMap
 
 import (
+	"sort"
+	"strings"
 	"testing"
 	"time"
 )
@@ -144,5 +146,44 @@ func TestClear(t *testing.T) {
 	t.Logf("tm.len: %v\n", tm.Len())
 	if tm.Len() != 0 {
 		t.Fatalf("t.Len should equal 0, but actually equals %v\n", tm.Len())
+	}
+}
+
+func TestAllFunc(t *testing.T) {
+	maxTTL := 2                    // time in seconds
+	startSize := 3                 // initial number of items in map
+	pruneInterval := 4             // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
+	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+
+	// populate the TtlMap
+	tm.Put("myString", "a b c")
+	tm.Put("int", 1234)
+	tm.Put("floatPi", 3.1415)
+	tm.Put("int_array", []int{1, 2, 3})
+	tm.Put("boolean", true)
+
+	tm.Delete("floatPi")
+	//t.Logf("tm.len: %v\n", tm.Len())
+	if tm.Len() != 4 {
+		t.Fatalf("t.Len should equal 4, but actually equals %v\n", tm.Len())
+	}
+
+	tm.Put("byte", 0x7b)
+	var u = uint64(123456789)
+	tm.Put("uint64", u)
+
+	var allKeys []string
+
+	allItems := tm.All()
+	for k := range allItems {
+		//t.Logf("%v\n", k)
+		allKeys = append(allKeys, string(k))
+	}
+	sort.Strings(allKeys)
+	joined := strings.Join(allKeys[:], ",")
+	correct := "boolean,byte,int,int_array,myString,uint64"
+	if joined != correct {
+		t.Fatalf("joined should equal correct...\njoined : %v\ncorrect: %v\n", joined, correct)
 	}
 }
