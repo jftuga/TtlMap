@@ -21,10 +21,10 @@ type User struct {
 }
 
 func main() {
-	maxTTL := 4                    // time in seconds
-	startSize := 3                 // initial number of items in map
-	pruneInterval := 1             // search for expired items every 'pruneInterval' seconds
-	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
+	maxTTL := time.Duration(time.Second * 4)        // time in seconds
+	startSize := 3                                  // initial number of items in map
+	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
 	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer t.Close()
 
@@ -75,7 +75,7 @@ func main() {
 	fmt.Println()
 	fmt.Printf("Sleeping %v seconds, items should be removed after this time, except for the '%v' key\n", sleepTime, dontExpireKey)
 	fmt.Println()
-	time.Sleep(time.Second * time.Duration(sleepTime))
+	time.Sleep(sleepTime)
 
 	// these items have expired and therefore should be nil, except for 'dontExpireKey'
 	fmt.Printf("[%9s] %v\n", "string", t.Get("string"))
@@ -94,7 +94,7 @@ func main() {
 	if t.Get("int") == nil {
 		fmt.Println("[int] is nil")
 	}
-	fmt.Println("TtlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len(), " (should equal 1)")
 	fmt.Println()
 
 	fmt.Println()
@@ -104,14 +104,16 @@ func main() {
 	fmt.Printf("Manually deleting '%v' key again; should NOT be successful this time\n", dontExpireKey)
 	success = t.Delete(TtlMap.CustomKeyType(dontExpireKey))
 	fmt.Printf("    successful? %v\n", success)
-	fmt.Println("TtlMap length:", t.Len())
+	fmt.Println("TtlMap length:", t.Len(), " (should equal 0)")
 	fmt.Println()
 
 	fmt.Println("Adding 2 items and then running Clear()")
 	t.Put("string", "a b c")
 	t.Put("int", 3)
 	fmt.Println("TtlMap length:", t.Len())
-	fmt.Println("running Clear()")
+
+	fmt.Println()
+	fmt.Println("Running Clear()")
 	t.Clear()
 	fmt.Println("TtlMap length:", t.Len())
 	fmt.Println()
