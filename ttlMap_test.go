@@ -1,8 +1,7 @@
 package TtlMap
 
 import (
-	"sort"
-	"strings"
+	"maps"
 	"testing"
 	"time"
 )
@@ -173,17 +172,8 @@ func TestAllFunc(t *testing.T) {
 	var u = uint64(123456789)
 	tm.Put("uint64", u)
 
-	var allKeys []string
-
 	allItems := tm.All()
-	for k := range allItems {
-		//t.Logf("%v\n", k)
-		allKeys = append(allKeys, string(k))
-	}
-	sort.Strings(allKeys)
-	joined := strings.Join(allKeys[:], ",")
-	correct := "boolean,byte,int,int_array,myString,uint64"
-	if joined != correct {
-		t.Fatalf("joined should equal correct...\njoined : %v\ncorrect: %v\n", joined, correct)
+	if !maps.Equal(allItems, tm.m) {
+		t.Fatalf("allItems and tm.m are not equal\n")
 	}
 }

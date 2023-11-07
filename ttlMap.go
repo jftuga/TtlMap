@@ -27,13 +27,12 @@ Changes from the referenced implementation
 package TtlMap
 
 import (
+	"maps"
 	"sync"
 	"time"
-
-	"github.com/LastPossum/kamino"
 )
 
-const version string = "1.2.0"
+const version string = "1.3.0"
 
 type CustomKeyType string
 
@@ -46,27 +45,33 @@ type TtlMap struct {
 	m       map[CustomKeyType]*item
 	l       sync.Mutex
 	refresh bool
+	stop    chan bool
 }
 
 func New(maxTTL int, ln int, pruneInterval int, refreshLastAccessOnGet bool) (m *TtlMap) {
 	// if pruneInterval > maxTTL {
 	// 	print("WARNING: TtlMap: pruneInterval > maxTTL\n")
 	// }
-	m = &TtlMap{m: make(map[CustomKeyType]*item, ln)}
+	m = &TtlMap{m: make(map[CustomKeyType]*item, ln), stop: make(chan bool)}
 	m.refresh = refreshLastAccessOnGet
 	go func() {
-		for now := range time.Tick(time.Second * time.Duration(pruneInterval)) {
-			currentTime := now.Unix()
-			m.l.Lock()
-			for k, v := range m.m {
-				// print("TICK:", currentTime, "  ", v.lastAccess, "  ", (currentTime - v.lastAccess), "  ", maxTTL, "  ", k, "\n")
-				if currentTime-v.lastAccess >= int64(maxTTL) {
-					delete(m.m, k)
-					// print("deleting: ", k, "\n")
+		for {
+			select {
+			case <-m.stop:
+				return
+			case now := <-time.Tick(time.Second * time.Duration(pruneInterval)):
+				currentTime := now.Unix()
+				m.l.Lock()
+				for k, v := range m.m {
+					//print("TICK:", currentTime, "  ", v.lastAccess, "  ", (currentTime - v.lastAccess), "  ", maxTTL, "  ", k, "\n")
+					if currentTime-v.lastAccess >= int64(maxTTL) {
+						delete(m.m, k)
+						// print("deleting: ", k, "\n")
+					}
 				}
+				// print("\n")
+				m.l.Unlock()
 			}
-			// print("\n")
-			m.l.Unlock()
 		}
 	}()
 	return
@@ -118,10 +123,13 @@ func (m *TtlMap) Clear() {
 }
 
 func (m *TtlMap) All() map[CustomKeyType]*item {
-	copy, err := kamino.Clone(m.m)
-	if err != nil {
-		print(err)
-		return nil
-	}
-	return copy
+	m.l.Lock()
+	dst := make(map[CustomKeyType]*item, len(m.m))
+	maps.Copy(dst, m.m)
+	m.l.Unlock()
+	return dst
+}
+
+func (m *TtlMap) Close() {
+	m.stop <- true
 }
