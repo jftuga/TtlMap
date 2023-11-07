@@ -26,6 +26,7 @@ func main() {
 	pruneInterval := 1             // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true // update item's lastAccessTime on a .Get()
 	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	defer t.Close()
 
 	// populate the TtlMap
 	t.Put("string", "a b c")

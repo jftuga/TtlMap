@@ -26,6 +26,7 @@ func main() {
 	pruneInterval := 1             // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true // update item's 'lastAccessTime' on a .Get()
 	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	defer t.Close()
 
 	// populate the TtlMap
 	t.Put("myString", "a b c")
@@ -68,7 +69,7 @@ TtlMap length: 0
 * `Len`: return the number of items in the map
 * `Put`: add a key/value
 * `Get`: get the current value of the given key; return `nil` if the key is not found in the map
-* `All`: return all items in the map
+* `All`: returns a *copy* of all items in the map
 * `Delete`: delete an item; return `true` if the item was deleted, `false` if the item was not found in the map
 * `Clear`: remove all items from the map
 
