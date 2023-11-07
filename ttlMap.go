@@ -32,7 +32,7 @@ import (
 	"time"
 )
 
-const version string = "1.3.0"
+const version string = "1.4.0"
 
 type CustomKeyType string
 
@@ -48,28 +48,30 @@ type TtlMap struct {
 	stop    chan bool
 }
 
-func New(maxTTL int, ln int, pruneInterval int, refreshLastAccessOnGet bool) (m *TtlMap) {
+func New(maxTTL time.Duration, ln int, pruneInterval time.Duration, refreshLastAccessOnGet bool) (m *TtlMap) {
 	// if pruneInterval > maxTTL {
 	// 	print("WARNING: TtlMap: pruneInterval > maxTTL\n")
 	// }
 	m = &TtlMap{m: make(map[CustomKeyType]*item, ln), stop: make(chan bool)}
 	m.refresh = refreshLastAccessOnGet
+	maxTTL /= 1000000000
+	// print("maxTTL: ", maxTTL, "\n")
 	go func() {
 		for {
 			select {
 			case <-m.stop:
 				return
-			case now := <-time.Tick(time.Second * time.Duration(pruneInterval)):
+			case now := <-time.Tick(pruneInterval):
 				currentTime := now.Unix()
 				m.l.Lock()
 				for k, v := range m.m {
-					//print("TICK:", currentTime, "  ", v.lastAccess, "  ", (currentTime - v.lastAccess), "  ", maxTTL, "  ", k, "\n")
+					// print("TICK:", currentTime, "  ", v.lastAccess, "  ", currentTime-v.lastAccess, "  ", maxTTL, "  ", k, "\n")
 					if currentTime-v.lastAccess >= int64(maxTTL) {
 						delete(m.m, k)
 						// print("deleting: ", k, "\n")
 					}
 				}
-				// print("\n")
+				// print("----\n")
 				m.l.Unlock()
 			}
 		}
@@ -99,6 +101,15 @@ func (m *TtlMap) Get(k CustomKeyType) (v interface{}) {
 		if m.refresh {
 			m.m[k].lastAccess = time.Now().Unix()
 		}
+	}
+	m.l.Unlock()
+	return
+}
+
+func (m *TtlMap) GetNoUpdate(k CustomKeyType) (v interface{}) {
+	m.l.Lock()
+	if it, ok := m.m[k]; ok {
+		v = it.Value
 	}
 	m.l.Unlock()
 	return

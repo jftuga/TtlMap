@@ -16,15 +16,14 @@ package main
 import (
 	"fmt"
 	"time"
-
 	"github.com/jftuga/TtlMap"
 )
 
 func main() {
-	maxTTL := 4                    // a key's time to live in seconds
-	startSize := 3                 // initial number of items in map
-	pruneInterval := 1             // search for expired items every 'pruneInterval' seconds
-	refreshLastAccessOnGet := true // update item's 'lastAccessTime' on a .Get()
+	maxTTL := time.Duration(time.Second * 4)        // a key's time to live in seconds
+	startSize := 3                                  // initial number of items in map
+	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true                  // update item's 'lastAccessTime' on a .Get()
 	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer t.Close()
 
@@ -42,11 +41,12 @@ func main() {
 
 	sleepTime := maxTTL + pruneInterval
 	fmt.Printf("Sleeping %v seconds, items should be 'nil' after this time\n", sleepTime)
-	time.Sleep(time.Second * time.Duration(sleepTime))
+	time.Sleep(sleepTime)
 	fmt.Printf("[%9s] %v\n", "myString", t.Get("myString"))
 	fmt.Printf("[%9s] %v\n", "int_array", t.Get("int_array"))
 	fmt.Println("TtlMap length:", t.Len())
 }
+
 ```
 
 Output:
@@ -66,9 +66,12 @@ TtlMap length: 0
 
 ## API functions
 * `New`: initialize a `TtlMap`
+* `Close`: this stops the goroutine that checks for expired items; use with `defer`
 * `Len`: return the number of items in the map
 * `Put`: add a key/value
 * `Get`: get the current value of the given key; return `nil` if the key is not found in the map
+* `GetNoUpdate`: same as `Get`, but do not update the `lastAccess` expiration time
+* * * This ignores the `refreshLastAccessOnGet` parameter
 * `All`: returns a *copy* of all items in the map
 * `Delete`: delete an item; return `true` if the item was deleted, `false` if the item was not found in the map
 * `Clear`: remove all items from the map
