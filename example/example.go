@@ -25,7 +25,7 @@ func main() {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	t := TtlMap.New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer t.Close()
 
 	// populate the TtlMap
@@ -66,7 +66,7 @@ func main() {
 	dontExpireKey := "float"
 	go func() {
 		for range time.Tick(time.Second) {
-			t.Get(TtlMap.CustomKeyType(dontExpireKey))
+			t.Get(dontExpireKey)
 		}
 	}()
 
@@ -99,10 +99,10 @@ func main() {
 
 	fmt.Println()
 	fmt.Printf("Manually deleting '%v' key; should be successful\n", dontExpireKey)
-	success := t.Delete(TtlMap.CustomKeyType(dontExpireKey))
+	success := t.Delete(dontExpireKey)
 	fmt.Printf("    successful? %v\n", success)
 	fmt.Printf("Manually deleting '%v' key again; should NOT be successful this time\n", dontExpireKey)
-	success = t.Delete(TtlMap.CustomKeyType(dontExpireKey))
+	success = t.Delete(dontExpireKey)
 	fmt.Printf("    successful? %v\n", success)
 	fmt.Println("TtlMap length:", t.Len(), " (should equal 0)")
 	fmt.Println()

@@ -11,7 +11,7 @@ func TestAllItemsExpired(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -30,7 +30,7 @@ func TestNoItemsExpired(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 3) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -49,7 +49,7 @@ func TestKeepFloat(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -60,7 +60,7 @@ func TestKeepFloat(t *testing.T) {
 	dontExpireKey := "int"
 	go func() {
 		for range time.Tick(time.Second) {
-			tm.Get(CustomKeyType(dontExpireKey))
+			tm.Get(dontExpireKey)
 		}
 	}()
 
@@ -69,11 +69,11 @@ func TestKeepFloat(t *testing.T) {
 		t.Fatalf("t.Len should equal 1, but actually equals %v\n", tm.Len())
 	}
 	all := tm.All()
-	if all[CustomKeyType(dontExpireKey)].Value != 1234 {
-		t.Errorf("Value should equal 1234 but actually equals %v\n", all[CustomKeyType(dontExpireKey)].Value)
+	if all[dontExpireKey].Value != 1234 {
+		t.Errorf("Value should equal 1234 but actually equals %v\n", all[dontExpireKey].Value)
 	}
 	t.Logf("tm.Len: %v\n", tm.Len())
-	t.Logf("%v Value: %v\n", dontExpireKey, all[CustomKeyType(dontExpireKey)].Value)
+	t.Logf("%v Value: %v\n", dontExpireKey, all[dontExpireKey].Value)
 }
 
 func TestWithNoRefresh(t *testing.T) {
@@ -81,7 +81,7 @@ func TestWithNoRefresh(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := false                 // do NOT update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -107,7 +107,7 @@ func TestDelete(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -132,7 +132,7 @@ func TestClear(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -155,7 +155,7 @@ func TestAllFunc(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -186,7 +186,7 @@ func TestGetNoUpdate(t *testing.T) {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
-	tm := New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer tm.Close()
 
 	// populate the TtlMap
@@ -203,6 +203,77 @@ func TestGetNoUpdate(t *testing.T) {
 		}
 	}()
 
+	time.Sleep(maxTTL + pruneInterval)
+	t.Logf("tm.Len: %v\n", tm.Len())
+	if tm.Len() != 0 {
+		t.Errorf("t.Len should be 0, but actually equals %v\n", tm.Len())
+	}
+}
+
+func TestUInt64Key(t *testing.T) {
+	maxTTL := time.Duration(time.Second * 2)        // time in seconds
+	startSize := 3                                  // initial number of items in map
+	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
+	tm := New[uint64](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	defer tm.Close()
+
+	tm.Put(18446744073709551615, "largest")
+	tm.Put(9223372036854776000, "mid")
+	tm.Put(0, "zero")
+
+	allItems := tm.All()
+	for k, v := range allItems {
+		t.Logf("k: %v   v: %v\n", k, v.Value)
+	}
+
+	time.Sleep(maxTTL + pruneInterval)
+	t.Logf("tm.Len: %v\n", tm.Len())
+	if tm.Len() != 0 {
+		t.Errorf("t.Len should be 0, but actually equals %v\n", tm.Len())
+	}
+}
+
+func TestUFloat32Key(t *testing.T) {
+	maxTTL := time.Duration(time.Second * 2)        // time in seconds
+	startSize := 3                                  // initial number of items in map
+	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
+	tm := New[float32](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	defer tm.Close()
+
+	tm.Put(34000000000.12345, "largest")
+	tm.Put(12312312312.98765, "mid")
+	tm.Put(0.001, "tiny")
+
+	allItems := tm.All()
+	for k, v := range allItems {
+		t.Logf("k: %v   v: %v\n", k, v.Value)
+	}
+	t.Logf("k: 0.001   v:%v   (verified)\n", tm.Get(0.001))
+
+	time.Sleep(maxTTL + pruneInterval)
+	t.Logf("tm.Len: %v\n", tm.Len())
+	if tm.Len() != 0 {
+		t.Errorf("t.Len should be 0, but actually equals %v\n", tm.Len())
+	}
+}
+
+func TestByteKey(t *testing.T) {
+	maxTTL := time.Duration(time.Second * 2)        // time in seconds
+	startSize := 3                                  // initial number of items in map
+	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
+	tm := New[byte](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	defer tm.Close()
+
+	tm.Put(0x41, "A")
+	tm.Put(0x7a, "z")
+
+	allItems := tm.All()
+	for k, v := range allItems {
+		t.Logf("k: %x   v: %v\n", k, v.Value)
+	}
 	time.Sleep(maxTTL + pruneInterval)
 	t.Logf("tm.Len: %v\n", tm.Len())
 	if tm.Len() != 0 {

@@ -9,19 +9,9 @@ in the map are deleted.
 When a Put() occurs, the lastAccess time is set to time.Now().Unix()
 When a Get() occurs, the lastAccess time is updated to time.Now().Unix()
 Therefore, only items that are not called by Get() will be deleted after the TTL occurs.
+A GetNoUpdate() can be used in which case the lastAccess time will NOT be updated.
 
 Adopted from: https://stackoverflow.com/a/25487392/452281
-
-Changes from the referenced implementation
-==========================================
-1) the may key is user definable by setting CustomKeyType (defaults to string)
-2) use interface{} instead of string as the map value so that any data type can be used
-3) added All() function
-4) use item.Value instead of item.value so that it can be externally referenced
-5) added user configurable prune interval - search for expired items every 'pruneInterval' seconds
-6) toggle for refreshLastAccessOnGet - update item's lastAccessTime on a .Get() when set to true
-7) add Delete() and Clear() functions
-
 */
 
 package TtlMap
@@ -34,25 +24,27 @@ import (
 
 const version string = "1.4.0"
 
-type CustomKeyType string
+type CustomKeyType interface {
+	comparable
+}
 
 type item struct {
 	Value      interface{}
 	lastAccess int64
 }
 
-type TtlMap struct {
-	m       map[CustomKeyType]*item
+type TtlMap[T CustomKeyType] struct {
+	m       map[T]*item
 	l       sync.Mutex
 	refresh bool
 	stop    chan bool
 }
 
-func New(maxTTL time.Duration, ln int, pruneInterval time.Duration, refreshLastAccessOnGet bool) (m *TtlMap) {
+func New[T CustomKeyType](maxTTL time.Duration, ln int, pruneInterval time.Duration, refreshLastAccessOnGet bool) (m *TtlMap[T]) {
 	// if pruneInterval > maxTTL {
 	// 	print("WARNING: TtlMap: pruneInterval > maxTTL\n")
 	// }
-	m = &TtlMap{m: make(map[CustomKeyType]*item, ln), stop: make(chan bool)}
+	m = &TtlMap[T]{m: make(map[T]*item, ln), stop: make(chan bool)}
 	m.refresh = refreshLastAccessOnGet
 	maxTTL /= 1000000000
 	// print("maxTTL: ", maxTTL, "\n")
@@ -79,11 +71,11 @@ func New(maxTTL time.Duration, ln int, pruneInterval time.Duration, refreshLastA
 	return
 }
 
-func (m *TtlMap) Len() int {
+func (m *TtlMap[T]) Len() int {
 	return len(m.m)
 }
 
-func (m *TtlMap) Put(k CustomKeyType, v interface{}) {
+func (m *TtlMap[T]) Put(k T, v interface{}) {
 	m.l.Lock()
 	it, ok := m.m[k]
 	if !ok {
@@ -94,7 +86,7 @@ func (m *TtlMap) Put(k CustomKeyType, v interface{}) {
 	m.l.Unlock()
 }
 
-func (m *TtlMap) Get(k CustomKeyType) (v interface{}) {
+func (m *TtlMap[T]) Get(k T) (v interface{}) {
 	m.l.Lock()
 	if it, ok := m.m[k]; ok {
 		v = it.Value
@@ -106,7 +98,7 @@ func (m *TtlMap) Get(k CustomKeyType) (v interface{}) {
 	return
 }
 
-func (m *TtlMap) GetNoUpdate(k CustomKeyType) (v interface{}) {
+func (m *TtlMap[T]) GetNoUpdate(k T) (v interface{}) {
 	m.l.Lock()
 	if it, ok := m.m[k]; ok {
 		v = it.Value
@@ -115,7 +107,7 @@ func (m *TtlMap) GetNoUpdate(k CustomKeyType) (v interface{}) {
 	return
 }
 
-func (m *TtlMap) Delete(k CustomKeyType) bool {
+func (m *TtlMap[T]) Delete(k T) bool {
 	m.l.Lock()
 	_, ok := m.m[k]
 	if !ok {
@@ -127,20 +119,20 @@ func (m *TtlMap) Delete(k CustomKeyType) bool {
 	return true
 }
 
-func (m *TtlMap) Clear() {
+func (m *TtlMap[T]) Clear() {
 	m.l.Lock()
 	clear(m.m)
 	m.l.Unlock()
 }
 
-func (m *TtlMap) All() map[CustomKeyType]*item {
+func (m *TtlMap[T]) All() map[T]*item {
 	m.l.Lock()
-	dst := make(map[CustomKeyType]*item, len(m.m))
+	dst := make(map[T]*item, len(m.m))
 	maps.Copy(dst, m.m)
 	m.l.Unlock()
 	return dst
 }
 
-func (m *TtlMap) Close() {
+func (m *TtlMap[T]) Close() {
 	m.stop <- true
 }
