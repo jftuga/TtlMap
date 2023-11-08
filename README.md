@@ -1,7 +1,7 @@
 # TtlMap
 
 `TtlMap` is golang package that implements a *time-to-live* map such that after a given amount of time, items in the map are deleted.
-* The default map key uses a type of `string`, but this can be modified be changing `CustomKeyType` in [TtlMap.go](TtlMap.go).
+* The map key can be any [comparable](https://go.dev/ref/spec#Comparison_operators) data type, via Generics.
 * Any data type can be used as a map value. Internally, `interface{}` is used for this.
 
 ## Example
@@ -24,7 +24,10 @@ func main() {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's 'lastAccessTime' on a .Get()
-	t := TtlMap.New(maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+
+	// any comparable data type such as int, uint64, pointers and struct types (if all field types are comparable)
+	// can be used as the key type, not just string
+	t := TtlMap.New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer t.Close()
 
 	// populate the TtlMap
@@ -46,7 +49,6 @@ func main() {
 	fmt.Printf("[%9s] %v\n", "int_array", t.Get("int_array"))
 	fmt.Println("TtlMap length:", t.Len())
 }
-
 ```
 
 Output:
@@ -85,6 +87,7 @@ TtlMap length: 0
 * Adopted from: [Map with TTL option in Go](https://stackoverflow.com/a/25487392/452281)
 * * Answer created by: [OneOfOne](https://stackoverflow.com/users/145587/oneofone)
 * [/u/skeeto](https://old.reddit.com/user/skeeto): suggestions for the `New` function
+* `@zhayes` on the Go Discord: helping me with Go Generics
 
 ## Disclosure Notification
 
