@@ -12,6 +12,9 @@ func main() {
 	startSize := 3                                  // initial number of items in map
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's 'lastAccessTime' on a .Get()
+
+	// any comparable data type such as int, uint64, pointers and struct types (if all field types are comparable)
+	// can be used as the key type, not just string
 	t := TtlMap.New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
 	defer t.Close()
 
