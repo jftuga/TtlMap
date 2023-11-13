@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-const version string = "1.5.0"
+const version string = "1.5.1"
 
 type CustomKeyType interface {
 	comparable
@@ -77,12 +77,7 @@ func (m *TtlMap[T]) Len() int {
 
 func (m *TtlMap[T]) Put(k T, v interface{}) {
 	m.l.Lock()
-	it, ok := m.m[k]
-	if !ok {
-		it = &item{Value: v}
-		m.m[k] = it
-	}
-	it.lastAccess = time.Now().Unix()
+	m.m[k] = &item{Value: v, lastAccess: time.Now().Unix()}
 	m.l.Unlock()
 }
 

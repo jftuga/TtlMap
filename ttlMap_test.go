@@ -280,3 +280,25 @@ func TestByteKey(t *testing.T) {
 		t.Errorf("t.Len should be 0, but actually equals %v\n", tm.Len())
 	}
 }
+
+func TestMultiplePuts(t *testing.T) {
+	maxTTL := time.Duration(time.Second * 2)        // time in seconds
+	startSize := 3                                  // initial number of items in map
+	pruneInterval := time.Duration(time.Second * 4) // search for expired items every 'pruneInterval' seconds
+	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
+	tm := New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
+	defer tm.Close()
+
+	key := "example"
+	tm.Put(key, "original")
+
+	tm.Put(key, "revised")
+	if tm.Get(key) != "revised" {
+		t.Errorf("The '%v' should equal 'revised', but actually equals: '%v'\n", key, tm.Get(key))
+	}
+
+	tm.Put(key, "revised-2")
+	if tm.Get(key) != "revised-2" {
+		t.Errorf("The '%v' should equal 'revised', but actually equals: '%v'\n", key, tm.Get(key))
+	}
+}
