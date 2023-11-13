@@ -299,6 +299,6 @@ func TestMultiplePuts(t *testing.T) {
 
 	tm.Put(key, "revised-2")
 	if tm.Get(key) != "revised-2" {
-		t.Errorf("The '%v' should equal 'revised', but actually equals: '%v'\n", key, tm.Get(key))
+		t.Errorf("The '%v' should equal 'revised-2', but actually equals: '%v'\n", key, tm.Get(key))
 	}
 }
