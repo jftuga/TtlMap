@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+
+.DS_STORE
+.idea/
+mem_*prof

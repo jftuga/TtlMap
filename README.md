@@ -81,7 +81,7 @@ TtlMap length: 0
 ## Performance
 * Searching for expired items runs in O(n) time, where n = number of items in the `TtlMap`.
 * * This inefficiency can be somewhat mitigated by increasing the value of the `pruneInterval` time.
-* In most cases you want `pruneInterval > maxTTL`; otherwise expired items will stay in the map longer than expected.
+* In most cases you want `pruneInterval < maxTTL` for faster cleanup of expired items. Setting `pruneInterval > maxTTL` reduces overhead but causes expired items to linger longer in the map.
 
 ## Acknowledgments
 * Adopted from: [Map with TTL option in Go](https://stackoverflow.com/a/25487392/452281)
