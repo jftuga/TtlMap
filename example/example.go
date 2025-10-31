@@ -64,8 +64,13 @@ func main() {
 	// by executing Get(), the 'dontExpireKey' lastAccessTime will be updated
 	// therefore, this item will not expire
 	dontExpireKey := "float"
+
+	// Create a ticker that we can stop
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
 	go func() {
-		for range time.Tick(time.Second) {
+		for range ticker.C {
 			t.Get(dontExpireKey)
 		}
 	}()

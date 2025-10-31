@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-const version string = "1.5.1"
+const version string = "1.6.0"
 
 type CustomKeyType interface {
 	comparable
@@ -37,33 +37,31 @@ type TtlMap[T CustomKeyType] struct {
 	m       map[T]*item
 	l       sync.Mutex
 	refresh bool
-	stop    chan bool
+	done    chan struct{}
 }
 
 func New[T CustomKeyType](maxTTL time.Duration, ln int, pruneInterval time.Duration, refreshLastAccessOnGet bool) (m *TtlMap[T]) {
-	// if pruneInterval > maxTTL {
-	// 	print("WARNING: TtlMap: pruneInterval > maxTTL\n")
-	// }
-	m = &TtlMap[T]{m: make(map[T]*item, ln), stop: make(chan bool)}
+	m = &TtlMap[T]{m: make(map[T]*item, ln), done: make(chan struct{})}
 	m.refresh = refreshLastAccessOnGet
 	maxTTL /= 1000000000
-	// print("maxTTL: ", maxTTL, "\n")
+
 	go func() {
+		ticker := time.NewTicker(pruneInterval)
+		defer ticker.Stop() // Clean up the ticker when goroutine exits
+
 		for {
 			select {
-			case <-m.stop:
+			case <-m.done:
+				ticker.Stop()
 				return
-			case now := <-time.Tick(pruneInterval):
+			case now := <-ticker.C:
 				currentTime := now.Unix()
 				m.l.Lock()
 				for k, v := range m.m {
-					// print("TICK:", currentTime, "  ", v.lastAccess, "  ", currentTime-v.lastAccess, "  ", maxTTL, "  ", k, "\n")
 					if currentTime-v.lastAccess >= int64(maxTTL) {
 						delete(m.m, k)
-						// print("deleting: ", k, "\n")
 					}
 				}
-				// print("----\n")
 				m.l.Unlock()
 			}
 		}
@@ -129,5 +127,10 @@ func (m *TtlMap[T]) All() map[T]*item {
 }
 
 func (m *TtlMap[T]) Close() {
-	m.stop <- true
+	select {
+	case <-m.done:
+		// already closed; do nothing
+	default:
+		close(m.done)
+	}
 }
