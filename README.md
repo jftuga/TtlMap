@@ -67,14 +67,14 @@ TtlMap length: 0
 ```
 
 ## API functions
-* `New`: initialize a `TtlMap`
-* `Close`: this stops the goroutine that checks for expired items; use with `defer`
+* `New`: initialize a `TtlMap`; TTLs retain full `time.Duration` precision, including subsecond durations. Expired items are removed on a subsequent pruning tick.
+* `Close`: this stops the goroutine that checks for expired items; use with `defer`. Repeated or concurrent calls are safe.
 * `Len`: return the number of items in the map
 * `Put`: add a key/value
 * `Get`: get the current value of the given key; return `nil` if the key is not found in the map
 * `GetNoUpdate`: same as `Get`, but do not update the `lastAccess` expiration time
 * * * This ignores the `refreshLastAccessOnGet` parameter
-* `All`: returns a *copy* of all items in the map
+* `All`: returns a *copy* of all entries in the map. Assigning to a returned entry's `Value` does not change the stored entry; referenced data inside values (such as slices, maps, or pointers) is not deep-copied.
 * `Delete`: delete an item; return `true` if the item was deleted, `false` if the item was not found in the map
 * `Clear`: remove all items from the map
 
