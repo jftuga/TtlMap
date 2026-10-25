@@ -1,0 +1,49 @@
+name: Go CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Build, vet, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          # This module has no external dependencies or go.sum to cache.
+          cache: false
+
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Run gofmt on the following files:"
+            printf '%s\n' "$unformatted"
+            exit 1
+          fi
+
+      - name: Build all packages and examples
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test with race detection and coverage
+        run: go test -race -cover -count=1 -timeout=5m ./...
