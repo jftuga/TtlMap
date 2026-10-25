@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-const version string = "1.6.0"
+const version string = "1.7.0"
 
 type CustomKeyType interface {
 	comparable

@@ -34,6 +34,7 @@ func TestTTLDoesNotExpireEarly(t *testing.T) {
 	}
 }
 
+// TestConcurrentLen only detects an unsynchronized Len() when run with -race.
 func TestConcurrentLen(t *testing.T) {
 	m := New[int](time.Hour, 1, time.Hour, false)
 	defer m.Close()
