@@ -8,8 +8,8 @@ goroutine tracking, benchmarks, and functional tests for all TtlMap operations.
 package TtlMap
 
 import (
-	"maps"
 	"os"
+	"reflect"
 	"runtime"
 	"runtime/pprof"
 	"testing"
@@ -43,7 +43,7 @@ func TestMemoryLeak(t *testing.T) {
 	runtime.ReadMemStats(&m)
 	after := m.Alloc
 
-	growth := after - baseline
+	growth := int64(after) - int64(baseline)
 	t.Logf("Memory baseline: %d bytes", baseline)
 	t.Logf("Memory after: %d bytes", after)
 	t.Logf("Memory growth: %d bytes", growth)
@@ -244,8 +244,12 @@ func TestAllFunc(t *testing.T) {
 	tm.Put("uint64", u)
 
 	allItems := tm.All()
-	if !maps.Equal(allItems, tm.m) {
+	if !reflect.DeepEqual(allItems, tm.m) {
 		t.Fatalf("allItems and tm.m are not equal\n")
+	}
+	allItems["myString"].Value = "changed"
+	if got := tm.GetNoUpdate("myString"); got != "a b c" {
+		t.Fatalf("mutating All() changed the stored value: %v", got)
 	}
 }
 
