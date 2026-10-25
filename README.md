@@ -16,12 +16,13 @@ package main
 import (
 	"fmt"
 	"time"
+
 	"github.com/jftuga/TtlMap"
 )
 
 func main() {
 	maxTTL := time.Duration(time.Second * 4)        // a key's time to live in seconds
-	startSize := 3                                  // initial number of items in map
+	startSize := 3                                  // initial map capacity hint
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's 'lastAccessTime' on a .Get()
 
@@ -43,7 +44,7 @@ func main() {
 	fmt.Println()
 
 	sleepTime := maxTTL + pruneInterval
-	fmt.Printf("Sleeping %v seconds, items should be 'nil' after this time\n", sleepTime)
+	fmt.Printf("Sleeping %v, items should be 'nil' after this time\n", sleepTime)
 	time.Sleep(sleepTime)
 	fmt.Printf("[%9s] %v\n", "myString", t.Get("myString"))
 	fmt.Printf("[%9s] %v\n", "int_array", t.Get("int_array"))
@@ -51,7 +52,7 @@ func main() {
 }
 ```
 
-Output:
+Output (map iteration order may vary):
 
 ```
 $ go run small.go
@@ -60,7 +61,7 @@ TtlMap length: 2
 [ myString] a b c
 [int_array] [1 2 3]
 
-Sleeping 5 seconds, items should be 'nil' after this time
+Sleeping 5s, items should be 'nil' after this time
 [ myString] <nil>
 [int_array] <nil>
 TtlMap length: 0
@@ -70,8 +71,8 @@ TtlMap length: 0
 * `New`: initialize a `TtlMap`; TTLs retain full `time.Duration` precision, including subsecond durations. Expired items are removed on a subsequent pruning tick.
 * `Close`: this stops the goroutine that checks for expired items; use with `defer`. Repeated or concurrent calls are safe.
 * `Len`: return the number of items in the map
-* `Put`: add a key/value
-* `Get`: get the current value of the given key; return `nil` if the key is not found in the map
+* `Put`: add or replace a key/value and reset its TTL
+* `Get`: get the current value of the given key; return `nil` if the key is not found in the map. Refreshes its TTL when `refreshLastAccessOnGet` is `true`. Reads do not check expiration, so an expired entry can still be returned (and refreshed) before pruning removes it.
 * `GetNoUpdate`: same as `Get`, but do not update the `lastAccess` expiration time
 * * * This ignores the `refreshLastAccessOnGet` parameter
 * `All`: returns a *copy* of all entries in the map. Assigning to a returned entry's `Value` does not change the stored entry; referenced data inside values (such as slices, maps, or pointers) is not deep-copied.

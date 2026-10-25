@@ -9,7 +9,7 @@ import (
 
 func main() {
 	maxTTL := time.Duration(time.Second * 4)        // a key's time to live in seconds
-	startSize := 3                                  // initial number of items in map
+	startSize := 3                                  // initial map capacity hint
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's 'lastAccessTime' on a .Get()
 
@@ -31,7 +31,7 @@ func main() {
 	fmt.Println()
 
 	sleepTime := maxTTL + pruneInterval
-	fmt.Printf("Sleeping %v seconds, items should be 'nil' after this time\n", sleepTime)
+	fmt.Printf("Sleeping %v, items should be 'nil' after this time\n", sleepTime)
 	time.Sleep(sleepTime)
 	fmt.Printf("[%9s] %v\n", "myString", t.Get("myString"))
 	fmt.Printf("[%9s] %v\n", "int_array", t.Get("int_array"))

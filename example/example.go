@@ -22,7 +22,7 @@ type User struct {
 
 func main() {
 	maxTTL := time.Duration(time.Second * 4)        // time in seconds
-	startSize := 3                                  // initial number of items in map
+	startSize := 3                                  // initial map capacity hint
 	pruneInterval := time.Duration(time.Second * 1) // search for expired items every 'pruneInterval' seconds
 	refreshLastAccessOnGet := true                  // update item's lastAccessTime on a .Get()
 	t := TtlMap.New[string](maxTTL, startSize, pruneInterval, refreshLastAccessOnGet)
@@ -35,7 +35,7 @@ func main() {
 	t.Put("int_array", []int{1, 2, 3})
 	t.Put("bool", false)
 	t.Put("rune", '{')
-	t.Put("byte", 0x7b)
+	t.Put("byte", byte(0x7b))
 	var u = uint64(123456789)
 	t.Put("uint64", u)
 	var c = complex(3.14, -4.321)
@@ -68,17 +68,24 @@ func main() {
 	// Create a ticker that we can stop
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
+	done := make(chan struct{})
+	defer close(done)
 
 	go func() {
-		for range ticker.C {
-			t.Get(dontExpireKey)
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				t.Get(dontExpireKey)
+			}
 		}
 	}()
 
 	// TtlMap has an expiration time, wait until this amount of time passes
 	sleepTime := maxTTL + pruneInterval
 	fmt.Println()
-	fmt.Printf("Sleeping %v seconds, items should be removed after this time, except for the '%v' key\n", sleepTime, dontExpireKey)
+	fmt.Printf("Sleeping %v, items should be removed after this time, except for the '%v' key\n", sleepTime, dontExpireKey)
 	fmt.Println()
 	time.Sleep(sleepTime)
 
